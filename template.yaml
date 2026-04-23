@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: RSS to Discord posting bot
+
+Parameters:
+  DiscordWebhookUrl:
+    Type: String
+    Description: Discord Webhook URL for posting messages
+    NoEcho: true
+  
+  ScheduleExpression:
+    Type: String
+    Description: EventBridge schedule expression
+    Default: cron(0 * * * ? *)
+  
+  ScheduleTimezone:
+    Type: String
+    Description: Timezone for the schedule
+    Default: Asia/Tokyo
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 256
+    Architectures:
+      - x86_64
+
+Resources:
+  # Lambda Function
+  RssDiscordFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Environment:
+        Variables:
+          DISCORD_WEBHOOK_URL: !Ref DiscordWebhookUrl
+      Policies:
+        - CloudWatchLogsFullAccess
+      Events:
+        HourlyTrigger:
+          Type: ScheduleV2
+          Properties:
+            ScheduleExpression: !Ref ScheduleExpression
+            ScheduleExpressionTimezone: !Ref ScheduleTimezone
+            FlexibleTimeWindow:
+              Mode: "OFF"
+
+Outputs:
+  RssDiscordFunction:
+    Description: RSS to Discord Lambda Function ARN
+    Value: !GetAtt RssDiscordFunction.Arn
+  
+  RssDiscordFunctionIamRole:
+    Description: Implicit IAM Role created for RSS to Discord function
+    Value: !GetAtt RssDiscordFunctionRole.Arn
