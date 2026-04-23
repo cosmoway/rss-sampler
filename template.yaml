@@ -30,8 +30,8 @@ Resources:
   RssDiscordFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: src/
-      Handler: app.lambda_handler
+      CodeUri: ./
+      Handler: src.app.lambda_handler
       Runtime: python3.12
       Environment:
         Variables:
